@@ -1,5 +1,5 @@
-deposit,25
-deposit,25
-deposit,25
-deposit,25
-withdrawal,10
+type,amount
+withdrawal,10.0
+withdrawal,17.0
+withdrawal,3.0
+deposit,35.0
