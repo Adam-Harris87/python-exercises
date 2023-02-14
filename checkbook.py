@@ -82,25 +82,18 @@ def menu():
 # In[2]:
 
 
-# menu_test = menu()
-# menu_test
-
-
-# In[3]:
-
-
 import os
 import csv
 
 
-# In[4]:
+# In[3]:
 
 
 tran_cols = ['type','amount']
 # tran_cols = ['type', 'amount', 'category', 'description', 'date', 'time', 'id']
 
 
-# In[5]:
+# In[4]:
 
 
 def check_for_balance_file():
@@ -113,14 +106,7 @@ def check_for_balance_file():
             writer.writeheader()
 
 
-# In[6]:
-
-
-# transactions = open_balance_file()
-# transactions
-
-
-# In[7]:
+# In[5]:
 
 
 def add_to_ckbk(details):
@@ -129,30 +115,27 @@ def add_to_ckbk(details):
         writer.writerow(details)
 
 
-# In[8]:
+# In[6]:
 
 
 def view_current_balance():
     total = 0
     with open('checkbook_balance.csv', 'r') as f:
             ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-            transactions = [line for line in ckbk_content]
+            transactions = [line for line in ckbk_content][0:]
     for tran in transactions:
-        if tran['type'] == 'deposit':
+        if len(transactions) == 1:
+            break
+        elif tran['type'] == 'deposit':
             total += float(tran['amount'])
-        else:
+        elif tran['type'] == 'withdrawal':
             total -= float(tran['amount'])
-    print(f'Current balance: ${total}')
+    print(f'Current balance is: ${total}')
+    if total < 0:
+        print('WARNING: ACCOUNT IS OVERDRAWN')
 
 
-# In[9]:
-
-
-# trans = open_balance_file()
-# trans
-
-
-# In[10]:
+# In[7]:
 
 
 def get_transaction_details(trans_type):
@@ -184,31 +167,27 @@ def get_transaction_details(trans_type):
     return amount
 
 
-# In[11]:
+# In[8]:
 
 
 def add_debit():
     print('Debit (withdrawal):')
     amount = get_transaction_details('withdrawal')    
     print(f'Withdrawl of {amount} added to checkbook.')
+    view_current_balance()
 
 
-# In[12]:
-
-
-# test = add_debit()
-
-
-# In[13]:
+# In[9]:
 
 
 def add_credit():
     print('Credit (deposit):')
     amount = get_transaction_details('deposit')   
     print(f'Deposit of {amount} added to checkbook.')
+    view_current_balance()
 
 
-# In[14]:
+# In[10]:
 
 
 print('Welcome to your checkbook!')
@@ -234,6 +213,7 @@ while True:
     elif choice == 4:
         print('Goodbye')
         exit()
+        break
     # elif choice == 4:
     #     view_prev_trans()
     # elif choice == 5:
@@ -247,5 +227,6 @@ while True:
     elif choice == 9:
         print('Goodbye')
         exit()
+        break
         
 

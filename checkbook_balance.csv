@@ -1,5 +1,4 @@
-type,amount
-withdrawal,10.0
-withdrawal,17.0
-withdrawal,3.0
-deposit,35.0
+type,amount,category
+deposit,55.45,Checking
+withdrawal,58.33,Transportation
+deposit,66.33,Money_Market
