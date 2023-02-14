@@ -58,6 +58,7 @@
 import os
 import csv
 from datetime import datetime
+import pandas as pd
 
 
 # In[2]:
@@ -70,17 +71,17 @@ def menu():
     print('2: Add a debit (withdrawal)')
     print('3: Add a credit (deposit)')
     print('4: View previous transactions')
-#     print('*** 5: View transactions by category')
-#     print('*** 6: View transactions by date')
-#     print('*** 7: Search transactions by description')
+    print('5: View transactions by category')
+    print('6: View transactions by date')
+    print('7: Search transactions by description')
 #     print('*** 8: Modify previous transaction')
-    print('5: Exit')
+    print('8: Exit')
     print()
     while True:
         choice = input('Please enter your selection: ')
         if choice.isdigit():
             choice = int(choice)
-            if 0 < choice < 6:
+            if 0 < choice < 9:
                 return choice
         else:
             print('Invalid selection')
@@ -89,7 +90,7 @@ def menu():
 # In[3]:
 
 
-tran_cols = ['type', 'amount', 'category', 'description', 'date', 'time']
+tran_cols = ['type', 'amount', 'category', 'date', 'time', 'description']
 
 
 # In[4]:
@@ -114,14 +115,22 @@ def add_to_ckbk(details):
         writer.writerow(details)
 
 
-# In[20]:
+# In[6]:
+
+
+def get_transaction_list(start=0):
+    with open('checkbook_balance.csv', 'r') as f:
+        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
+        transactions = [line for line in ckbk_content][start:]
+    return transactions
+
+
+# In[7]:
 
 
 def view_current_balance():
     total = 0
-    with open('checkbook_balance.csv', 'r') as f:
-        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-        transactions = [line for line in ckbk_content][0:]
+    transactions = get_transaction_list()
     for tran in transactions:
         if len(transactions) == 1:
             break
@@ -132,10 +141,10 @@ def view_current_balance():
     total = round(total, 2)
     print(f'Current balance is: ${total:,}')
     if total < 0:
-        print('WARNING: ACCOUNT IS OVERDRAWN')
+        print('** WARNING: ACCOUNT IS OVERDRAWN **')
 
 
-# In[7]:
+# In[8]:
 
 
 def get_deposit_cat():
@@ -166,7 +175,7 @@ def get_deposit_cat():
     #return category type
 
 
-# In[8]:
+# In[9]:
 
 
 def get_withdrawal_cat():
@@ -202,7 +211,7 @@ def get_withdrawal_cat():
             print('Invalid input')
 
 
-# In[9]:
+# In[10]:
 
 
 def get_transaction_details(trans_type):
@@ -211,7 +220,11 @@ def get_transaction_details(trans_type):
     while True:
         amount = input('Please enter amount: ')
         try:
+            #remove whitespace and commas
+            amount = amount.strip().replace(',','')
+            #convert to float
             amount = float(amount)
+            #round to 2 decimals
             amount = round(amount, 2)
             if amount > 0.00:
                 break
@@ -235,17 +248,13 @@ def get_transaction_details(trans_type):
     date = now.strftime("%Y/%m/%d")
     time = now.strftime("%H:%M:%S")
     
-    #** create id number
-    #look at checkbook max id number
-    #id = current_max + 1
-    
     details = {'type':trans_type, 'amount':amount, 'category':cat,
-               'description':desc, 'date':date, 'time':time}
+               'date':date, 'time':time, 'description':desc}
     add_to_ckbk(details)
     return amount
 
 
-# In[10]:
+# In[11]:
 
 
 def add_debit():
@@ -257,7 +266,7 @@ def add_debit():
     view_current_balance()
 
 
-# In[11]:
+# In[12]:
 
 
 def add_credit():
@@ -269,13 +278,11 @@ def add_credit():
     view_current_balance()
 
 
-# In[38]:
+# In[13]:
 
 
-def view_prev_trans():
-    with open('checkbook_balance.csv', 'r') as f:
-        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-        transactions = [line for line in ckbk_content][1:]
+def view_prev_trans(transactions):
+    print()
     print('|   type    |    amount   |     category   |    date    |   time   |                 description              |')
     print('---------------------------------------------------------------------------------------------------------------')
     for tran in transactions:
@@ -291,29 +298,167 @@ def view_prev_trans():
 # In[14]:
 
 
-def view_trans_by_cat():
-    with open('checkbook_balance.csv', 'r') as f:
-        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-        transactions = [line for line in ckbk_content][1:]
-    # get a sum of transaction amounts per category 
-    #blah
-    # cycle through each tran creating a list per category???
-    # function to get sum per category???
-        
+def view_trans_by_category():
+    # show list of acceptable category inputs
+    print()
+    print('Categories available:')
+    print('1: Withdrawal - Food')
+    print('2: Withdrawal - Transportation')
+    print('3: Withdrawal - Housing')
+    print('4: Withdrawal - Utilities')
+    print('5: Withdrawal - Entertainment')
+    print('6: Withdrawal - Bills')
+    print('7: Withdrawal - Other')
+    print('8: Deposit - Checking account')
+    print('9: Deposit - Savings account')
+    print('10: Deposit - Certificate of deposit')
+    print('11: Deposit - Money market account')
+    
+    #ask user to select category
+    while True:
+        print()
+        input_cat = input('Enter number to view: ')
+        try:
+            input_cat = input_cat.strip()
+            input_cat = int(input_cat)
+            #convert input to category type
+            if   input_cat == 1: 
+                find_cat = 'Food'
+                break
+            elif input_cat == 2: 
+                find_cat = 'Transportation'
+                break
+            elif input_cat == 3: 
+                find_cat = 'Housing'
+                break
+            elif input_cat == 4: 
+                find_cat = 'Utilities'
+                break
+            elif input_cat == 5: 
+                find_cat = 'Entertainment'
+                break
+            elif input_cat == 6: 
+                find_cat = 'Bills'
+                break
+            elif input_cat == 7: 
+                find_cat = 'Other'
+                break
+            elif input_cat == 8: 
+                find_cat = 'Checking'
+                break
+            elif input_cat == 9: 
+                find_cat = 'Savings'
+                break
+            elif input_cat == 10: 
+                find_cat = 'CD'
+                break
+            elif input_cat == 11: 
+                find_cat = 'Money_Market'
+                break
+            else: print('Invalid input')
+        except ValueError:
+            print('Invalid input')
+    
+    transactions = get_transaction_list()
+    matches = []
+    cat_total = 0
+    for tran in transactions:
+        if tran['category'] == find_cat:
+            matches.append(tran)
+            # get a sum of transaction amounts in category 
+            if tran['type'] == 'deposit':
+                cat_total += float(tran['amount'])
+            else:
+                cat_total -= float(tran['amount'])
+    
+    #display results
+    if len(matches) == 0:
+        print('No matches found.')
+    else:
+        print()
+        print(f'Total amount of category transactions: ${cat_total:,}')
+        print()
+        print(f'Tranactions in the {find_cat} category')
+        view_prev_trans(matches)
 
 
 # In[15]:
 
 
 def view_trans_by_date():
-    with open('checkbook_balance.csv', 'r') as f:
-        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-        transactions = [line for line in ckbk_content][1:]
+    transactions = get_transaction_list()
+        
     # ask user for date to display
-    # display transactions on given date
+    while True:
+        print()
+        find = input('Enter date to find in yyyy/mm/dd format: ')
+        try:
+            #check if input string contains valid date
+            bool(datetime.strptime(find,"%Y/%m/%d"))
+            #convert string to datetime
+            find = datetime.strptime(find,"%Y/%m/%d")
+            break
+        except ValueError:
+            print('Invalid date')
+    #convert datetime to date
+    find_date = find.strftime("%Y/%m/%d")
+    
+    #cycle through trans, gather details for any tran matching desired date
+    winners = []
+    for tran in transactions:
+        if find_date == tran['date']:
+            winners.append(tran)
+    
+    # display transactions for given date
+    if len(winners) == 0:
+        print('No matches found.')
+    else:
+        view_prev_trans(winners)
 
 
-# In[27]:
+# In[16]:
+
+
+def search_trans_by_desc():
+    transactions = get_transaction_list()
+    # ask user for keyword to search for
+    while True:
+        print()
+        look_for = input('Enter keyword to find in description: ')
+        if look_for:
+            look_for = look_for.lower()
+            break
+            
+    matches = []
+    # cycle through trans
+    for tran in transactions:
+        # search descriptions of each trans for desired keyword
+        if tran['description'].lower().find(look_for) != -1:
+            # gather tran details for matching keywords
+            matches.append(tran)
+    
+    # display trans details for matching keywords
+    if len(matches) == 0:
+        print('No matches found.')
+    else:
+        view_prev_trans(matches)
+
+
+# In[17]:
+
+
+def modify_prev_trans():
+    pass
+    # look up previous trans
+    
+    # ask user which tran id# to modify
+    
+    # gather new details from user
+    
+    # overwrite line in csv with new details
+
+
+# In[18]:
 
 
 print('Welcome to your checkbook!')
@@ -325,7 +470,7 @@ while True:
     #2: Add a debit (withdrawal)
     #3: Add a credit (deposit)
     #*** 4: View previous transactions
-    #*** 5: View transactions by category
+    #*** 5: View transactions in category
     #*** 6: View transactions by date
     #*** 7: Search transactions by description
     #*** 8: Modify previous transaction
@@ -337,16 +482,16 @@ while True:
     elif choice == 3:
         add_credit()
     elif choice == 4:
-        view_prev_trans()
-    # elif choice == 5:
-    #     view_trans_by_cat()
-    # elif choice == 6:
-    #     view_trans_by_date()
-    # elif choice == 7:
-    #     search_trans_by_desc()
+        view_prev_trans(get_transaction_list(1))
+    elif choice == 5:
+        view_trans_by_category()
+    elif choice == 6:
+        view_trans_by_date()
+    elif choice == 7:
+        search_trans_by_desc()
     # elif choice == 8:
     #     modify_prev_trans()
-    elif choice == 5:
+    elif choice == 8:
         print('Goodbye')
         exit()
         break
