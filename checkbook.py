@@ -74,14 +74,14 @@ def menu():
     print('5: View transactions by category')
     print('6: View transactions by date')
     print('7: Search transactions by description')
-#     print('*** 8: Modify previous transaction')
-    print('8: Exit')
+    print('8: Modify previous transaction')
+    print('9: Exit')
     print()
     while True:
         choice = input('Please enter your selection: ')
         if choice.isdigit():
             choice = int(choice)
-            if 0 < choice < 9:
+            if 0 < choice < 10:
                 return choice
         else:
             print('Invalid selection')
@@ -250,8 +250,7 @@ def get_transaction_details(trans_type):
     
     details = {'type':trans_type, 'amount':amount, 'category':cat,
                'date':date, 'time':time, 'description':desc}
-    add_to_ckbk(details)
-    return amount
+    return details
 
 
 # In[11]:
@@ -260,7 +259,9 @@ def get_transaction_details(trans_type):
 def add_debit():
     print()
     print('Debit (withdrawal):')
-    amount = get_transaction_details('withdrawal')
+    details = get_transaction_details('withdrawal')
+    amount = details['amount']
+    add_to_ckbk(details)
     print()
     print(f'Withdrawl of {amount} added to checkbook.')
     view_current_balance()
@@ -272,7 +273,9 @@ def add_debit():
 def add_credit():
     print()
     print('Credit (deposit):')
-    amount = get_transaction_details('deposit')
+    details = get_transaction_details('deposit')
+    amount = details['amount']
+    add_to_ckbk(details)
     print()
     print(f'Deposit of {amount} added to checkbook.')
     view_current_balance()
@@ -283,16 +286,16 @@ def add_credit():
 
 def view_prev_trans(transactions):
     print()
-    print('|   type    |    amount   |     category   |    date    |   time   |                 description              |')
-    print('---------------------------------------------------------------------------------------------------------------')
-    for tran in transactions:
+    print(' Id  |    type    |    amount   |     category   |    date    |   time   |                 description              |')
+    print('---------------------------------------------------------------------------------------------------------------------')
+    for i, tran in enumerate(transactions):
         tran_type = tran['type']
         tran_amount = tran['amount']
         tran_cat = tran['category']
         tran_date = tran['date']
         tran_time = tran['time']
         tran_desc = tran['description'][:40]
-        print(f' {tran_type:<10} | ${tran_amount:>11}| {tran_cat:>14} | {tran_date:>1} | {tran_time:>7} | {tran_desc:>40} |')
+        print(f'{i+1:<4} | {tran_type:<10} | ${tran_amount:>11}| {tran_cat:>14} | {tran_date:>1} | {tran_time:>7} | {tran_desc:>40} |')
 
 
 # In[14]:
@@ -378,7 +381,7 @@ def view_trans_by_category():
         print()
         print(f'Total amount of category transactions: ${cat_total:,}')
         print()
-        print(f'Tranactions in the {find_cat} category')
+        print(f'Transactions in the {find_cat} category')
         view_prev_trans(matches)
 
 
@@ -450,12 +453,47 @@ def search_trans_by_desc():
 def modify_prev_trans():
     pass
     # look up previous trans
+    transactions = get_transaction_list(1)
+    view_prev_trans(transactions)
     
     # ask user which tran id# to modify
-    
+    while True:
+        print()
+        mod_id = input('Enter the Id number of the transaction you would like to modify: ')
+        try:
+            mod_id = int(mod_id)
+            if mod_id <= len(transactions):
+                break
+            else:
+                print('Invalid input')
+        except ValueError:
+            print('Invalid input')
+            
     # gather new details from user
-    
+    # ask for new transaction type
+    while True:
+        new_type = input('Enter transaction type (deposit or withdrawal): ')
+        new_type = new_type.lower()
+        if new_type == 'deposit' or new_type == 'withdrawal':
+            break
+        else:
+            print('Invalid input')
+        
+    if new_type == 'deposit':
+        details = get_transaction_details('deposit')
+    elif new_type == 'withdrawal':
+        details = get_transaction_details('withdrawal')
+        
     # overwrite line in csv with new details
+    transactions[mod_id - 1] = details
+    
+    with open('checkbook_balance.csv', 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=tran_cols)
+        writer.writeheader()
+        for tran in transactions:
+            writer.writerow(tran)
+    
+    view_prev_trans(transactions)
 
 
 # In[18]:
@@ -489,9 +527,9 @@ while True:
         view_trans_by_date()
     elif choice == 7:
         search_trans_by_desc()
-    # elif choice == 8:
-    #     modify_prev_trans()
     elif choice == 8:
+        modify_prev_trans()
+    elif choice == 9:
         print('Goodbye')
         exit()
         break
