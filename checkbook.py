@@ -61,10 +61,14 @@ from datetime import datetime
 import pandas as pd
 
 
-# In[2]:
+# In[22]:
 
 
 def menu():
+    '''
+    This function will display the main menu, reject invalid inputs 
+    and return the inputted selection
+    '''
     print('What would you like to do?')
     print()
     print('1: View current balance')
@@ -83,6 +87,8 @@ def menu():
             choice = int(choice)
             if 0 < choice < 10:
                 return choice
+            else:
+                print('Invalid selection')
         else:
             print('Invalid selection')
 
@@ -97,6 +103,10 @@ tran_cols = ['type', 'amount', 'category', 'date', 'time', 'description']
 
 
 def check_for_balance_file():
+    '''
+    This function will check for the existance of the checkbook_balance.csv file
+    which is where the transactions are stored. If the file does not exist, one is created.
+    '''
     if not os.path.exists('checkbook_balance.csv'):
         # if transaction checkbook file does not exist, create one
         print('Checkbook file does not exist')
@@ -110,6 +120,10 @@ def check_for_balance_file():
 
 
 def add_to_ckbk(details):
+    '''
+    This function will take in details for a single transaction, and add the transaction
+    to the checkbook_balance.csv file.
+    '''
     with open('checkbook_balance.csv', 'a') as f:
         writer = csv.DictWriter(f, fieldnames=tran_cols)
         writer.writerow(details)
@@ -119,16 +133,24 @@ def add_to_ckbk(details):
 
 
 def get_transaction_list(start=0):
+    '''
+    This function will read in from the checkbook_balance.csv file a list 
+    of all stored transactions.
+    '''
     with open('checkbook_balance.csv', 'r') as f:
         ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
         transactions = [line for line in ckbk_content][start:]
     return transactions
 
 
-# In[7]:
+# In[23]:
 
 
 def view_current_balance():
+    '''
+    This function will calculate the current balance from a list of transactions,
+    and will display a warning message if account balance is below 0.
+    '''
     total = 0
     transactions = get_transaction_list()
     for tran in transactions:
@@ -141,13 +163,17 @@ def view_current_balance():
     total = round(total, 2)
     print(f'Current balance is: ${total:,}')
     if total < 0:
-        print('** WARNING: ACCOUNT IS OVERDRAWN **')
+        print('*** WARNING: ACCOUNT IS OVERDRAWN ***')
 
 
 # In[8]:
 
 
 def get_deposit_cat():
+    '''
+    This function will allow the user to input the deposit category from a displayed list
+    and will return the name of the selected category.
+    '''
     # display list of deposit category types
     print()
     print('Choose deposit type from selection:')
@@ -162,23 +188,25 @@ def get_deposit_cat():
         #check for valid int input
         if cat_type.isdigit():
             cat_type = int(cat_type)
-            if 0 < cat_type < 5:
-                #return category type
-                if   cat_type == 1: return 'Checking'
-                elif cat_type == 2: return 'Savings'
-                elif cat_type == 3: return 'CD'
-                elif cat_type == 4: return 'Money_Market'
+            #return category type
+            if   cat_type == 1: return 'Checking'
+            elif cat_type == 2: return 'Savings'
+            elif cat_type == 3: return 'CD'
+            elif cat_type == 4: return 'Money_Market'
             else:
                 print('Invalid input')
         else:
             print('Invalid input')
-    #return category type
 
 
 # In[9]:
 
 
 def get_withdrawal_cat():
+    '''
+    This function will allow the user to input a withdrawal category from a
+    displayed selection list and return the name of the selected category.
+    '''
     # display list of withdrawl category types
     print()
     print('Choose withdrawal category type from selection:')
@@ -196,15 +224,14 @@ def get_withdrawal_cat():
         #check for valid int input
         if cat_type.isdigit():
             cat_type = int(cat_type)
-            if 0 < cat_type < 8:
-                #return category type
-                if   cat_type == 1: return 'Food'
-                elif cat_type == 2: return 'Transportation'
-                elif cat_type == 3: return 'Housing'
-                elif cat_type == 4: return 'Utilities'
-                elif cat_type == 5: return 'Entertainment'
-                elif cat_type == 6: return 'Bills'
-                elif cat_type == 7: return 'Other'
+            #return category type
+            if   cat_type == 1: return 'Food'
+            elif cat_type == 2: return 'Transportation'
+            elif cat_type == 3: return 'Housing'
+            elif cat_type == 4: return 'Utilities'
+            elif cat_type == 5: return 'Entertainment'
+            elif cat_type == 6: return 'Bills'
+            elif cat_type == 7: return 'Other'
             else:
                 print('Invalid input')
         else:
@@ -215,6 +242,10 @@ def get_withdrawal_cat():
 
 
 def get_transaction_details(trans_type):
+    '''
+    This function will request information about a transaction from the user,
+    and return the transaction details
+    '''
     #ask for amount
     #repeat if invalid input
     while True:
@@ -257,6 +288,11 @@ def get_transaction_details(trans_type):
 
 
 def add_debit():
+    '''
+    This function will take in details for a withdrawal transaction type,
+    add the details to the checkbook_balance.csv,
+    then display the current account balance.
+    '''
     print()
     print('Debit (withdrawal):')
     details = get_transaction_details('withdrawal')
@@ -271,6 +307,11 @@ def add_debit():
 
 
 def add_credit():
+    '''
+    This function will take in details for a deposit transaction type,
+    add the details to the checkbook_balance.csv,
+    then display the current account balance.
+    '''
     print()
     print('Credit (deposit):')
     details = get_transaction_details('deposit')
@@ -285,8 +326,11 @@ def add_credit():
 
 
 def view_prev_trans(transactions):
+    '''
+    This function will display all previous transactions stored in checkbook_balance.csv.
+    '''
     print()
-    print(' Id  |    type    |    amount   |     category   |    date    |   time   |                 description              |')
+    print(' Id  |    Type    |    Amount   |     Category   |    Date    |   Time   |                 Description              |')
     print('---------------------------------------------------------------------------------------------------------------------')
     for i, tran in enumerate(transactions):
         tran_type = tran['type']
@@ -302,6 +346,10 @@ def view_prev_trans(transactions):
 
 
 def view_trans_by_category():
+    '''
+    This function will show a list of all transaction categories, 
+    request a selection from the user, then display all transactions in the selected category.
+    '''
     # show list of acceptable category inputs
     print()
     print('Categories available:')
@@ -389,6 +437,10 @@ def view_trans_by_category():
 
 
 def view_trans_by_date():
+    '''
+    This function will request a date from the user,
+    then will display all transactions that occured on the inputted date.
+    '''
     transactions = get_transaction_list()
         
     # ask user for date to display
@@ -423,6 +475,11 @@ def view_trans_by_date():
 
 
 def search_trans_by_desc():
+    '''
+    This function will request a keyword input from the user,
+    it will then search the descriptions for all transactions
+    and display all transactions that contain the keyword in the description.
+    '''
     transactions = get_transaction_list()
     # ask user for keyword to search for
     while True:
@@ -447,11 +504,16 @@ def search_trans_by_desc():
         view_prev_trans(matches)
 
 
-# In[17]:
+# In[20]:
 
 
 def modify_prev_trans():
-    pass
+    '''
+    This function will display all previous transactions,
+    then will request input of a transaction id number that the user wishes to modify,
+    it will then request the new transaction type and details
+    and will overwrite the checkbook_balance.csv file with the updated transaction list.
+    '''
     # look up previous trans
     transactions = get_transaction_list(1)
     view_prev_trans(transactions)
@@ -462,7 +524,7 @@ def modify_prev_trans():
         mod_id = input('Enter the Id number of the transaction you would like to modify: ')
         try:
             mod_id = int(mod_id)
-            if mod_id <= len(transactions):
+            if mod_id <= len(transactions) and mod_id > 0:
                 break
             else:
                 print('Invalid input')
@@ -496,9 +558,14 @@ def modify_prev_trans():
     view_prev_trans(transactions)
 
 
-# In[18]:
+# In[24]:
 
 
+'''
+This is the main section of the checkbook application, 
+it will welcome the user, create a checkbook_balance.csv file if it does not exist,
+then display the main menu options, and call the selected function.
+'''
 print('Welcome to your checkbook!')
 check_for_balance_file()
 while True:
