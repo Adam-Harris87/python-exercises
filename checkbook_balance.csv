@@ -1,4 +1,8 @@
-type,amount,category
-deposit,55.45,Checking
-withdrawal,58.33,Transportation
-deposit,66.33,Money_Market
+type,amount,category,date,time,description
+deposit,30456.0,Money_Market,2023/02/14,11:19:49,doing stuff and making money
+deposit,3495.59,CD,2023/02/14,11:22:25,did stuff and made money
+deposit,2366.0,Checking,2023/02/14,11:52:37,stuff and stuff
+withdrawal,55000.0,Other,2023/02/14,11:53:00,loan shark was going to break my legs
+deposit,35000.0,Checking,2023/02/14,11:53:28,robbed the bank
+deposit,34.45,CD,2023/02/14,12:26:16,money
+withdrawal,20.58,Food,2023/02/14,12:37:22,bar stuff

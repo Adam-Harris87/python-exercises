@@ -44,7 +44,6 @@
 # add credit will addd amount to balance and save info to file
 # 
 # balance file will save:
-# - current running total balance
 # - each transaction will have:
 #  - transaction type
 #  - transaction amount
@@ -56,41 +55,41 @@
 # In[1]:
 
 
+import os
+import csv
+from datetime import datetime
+
+
+# In[2]:
+
+
 def menu():
     print('What would you like to do?')
     print()
     print('1: View current balance')
     print('2: Add a debit (withdrawal)')
     print('3: Add a credit (deposit)')
-#     print('*** 4: View previous transactions')
+    print('4: View previous transactions')
 #     print('*** 5: View transactions by category')
 #     print('*** 6: View transactions by date')
 #     print('*** 7: Search transactions by description')
 #     print('*** 8: Modify previous transaction')
-    print('4: Exit')
+    print('5: Exit')
     print()
     while True:
         choice = input('Please enter your selection: ')
         if choice.isdigit():
             choice = int(choice)
-            if 0 < choice < 5:
+            if 0 < choice < 6:
                 return choice
         else:
             print('Invalid selection')
 
 
-# In[2]:
-
-
-import os
-import csv
-
-
 # In[3]:
 
 
-tran_cols = ['type','amount']
-# tran_cols = ['type', 'amount', 'category', 'description', 'date', 'time', 'id']
+tran_cols = ['type', 'amount', 'category', 'description', 'date', 'time']
 
 
 # In[4]:
@@ -115,14 +114,14 @@ def add_to_ckbk(details):
         writer.writerow(details)
 
 
-# In[6]:
+# In[20]:
 
 
 def view_current_balance():
     total = 0
     with open('checkbook_balance.csv', 'r') as f:
-            ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
-            transactions = [line for line in ckbk_content][0:]
+        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
+        transactions = [line for line in ckbk_content][0:]
     for tran in transactions:
         if len(transactions) == 1:
             break
@@ -130,7 +129,8 @@ def view_current_balance():
             total += float(tran['amount'])
         elif tran['type'] == 'withdrawal':
             total -= float(tran['amount'])
-    print(f'Current balance is: ${total}')
+    total = round(total, 2)
+    print(f'Current balance is: ${total:,}')
     if total < 0:
         print('WARNING: ACCOUNT IS OVERDRAWN')
 
@@ -138,56 +138,182 @@ def view_current_balance():
 # In[7]:
 
 
-def get_transaction_details(trans_type):
-    #ask for amount
-    #repeat if invalid input
+def get_deposit_cat():
+    # display list of deposit category types
+    print()
+    print('Choose deposit type from selection:')
+    print('1: Checking account')
+    print('2: Savings account')
+    print('3: Certificate of deposit')
+    print('4: Money market account')
+    #ask user to choose a deposit category number
     while True:
-        amount = input('Please enter amount: ')
-        if amount.isdigit():
-            amount = float(amount)
-            if amount > 0.00:
-                break
+        print()
+        cat_type = input('Enter category number: ')
+        #check for valid int input
+        if cat_type.isdigit():
+            cat_type = int(cat_type)
+            if 0 < cat_type < 5:
+                #return category type
+                if   cat_type == 1: return 'Checking'
+                elif cat_type == 2: return 'Savings'
+                elif cat_type == 3: return 'CD'
+                elif cat_type == 4: return 'Money_Market'
             else:
-                print('Amount cannot be negative')
+                print('Invalid input')
         else:
             print('Invalid input')
-    
-    #** ask for category
-    
-    #** ask for description
-    
-    #** get current time and date
-    
-    #** create id number
-    
-    details = {'type':trans_type, 'amount':amount}
-#     details = {'type':trans_type, 'amount':amount, 'cat':cat, 'desc':desc, 'date':date,
-#               'time':time, 'id':id}
-    add_to_ckbk(details)
-    return amount
+    #return category type
 
 
 # In[8]:
 
 
-def add_debit():
-    print('Debit (withdrawal):')
-    amount = get_transaction_details('withdrawal')    
-    print(f'Withdrawl of {amount} added to checkbook.')
-    view_current_balance()
+def get_withdrawal_cat():
+    # display list of withdrawl category types
+    print()
+    print('Choose withdrawal category type from selection:')
+    print('1: Food')
+    print('2: Transportation')
+    print('3: Housing')
+    print('4: Utilities')
+    print('5: Entertainment')
+    print('6: Bills')
+    print('7: Other')
+    #ask user to choose a withdrawl category number
+    while True:
+        print()
+        cat_type = input('Enter category number: ')
+        #check for valid int input
+        if cat_type.isdigit():
+            cat_type = int(cat_type)
+            if 0 < cat_type < 8:
+                #return category type
+                if   cat_type == 1: return 'Food'
+                elif cat_type == 2: return 'Transportation'
+                elif cat_type == 3: return 'Housing'
+                elif cat_type == 4: return 'Utilities'
+                elif cat_type == 5: return 'Entertainment'
+                elif cat_type == 6: return 'Bills'
+                elif cat_type == 7: return 'Other'
+            else:
+                print('Invalid input')
+        else:
+            print('Invalid input')
 
 
 # In[9]:
 
 
+def get_transaction_details(trans_type):
+    #ask for amount
+    #repeat if invalid input
+    while True:
+        amount = input('Please enter amount: ')
+        try:
+            amount = float(amount)
+            amount = round(amount, 2)
+            if amount > 0.00:
+                break
+            else:
+                print('Amount cannot be negative')
+        except ValueError:
+            print('Invalid input')
+    
+    #** ask for category
+    if trans_type == 'deposit':
+        cat = get_deposit_cat()
+    elif trans_type == 'withdrawal':
+        cat = get_withdrawal_cat()
+    
+    #** ask for description
+    #ask user to enter description
+    desc = input('Please enter transaction description (optional): ')
+    
+    #** get current time and date
+    now = datetime.now()
+    date = now.strftime("%Y/%m/%d")
+    time = now.strftime("%H:%M:%S")
+    
+    #** create id number
+    #look at checkbook max id number
+    #id = current_max + 1
+    
+    details = {'type':trans_type, 'amount':amount, 'category':cat,
+               'description':desc, 'date':date, 'time':time}
+    add_to_ckbk(details)
+    return amount
+
+
+# In[10]:
+
+
+def add_debit():
+    print()
+    print('Debit (withdrawal):')
+    amount = get_transaction_details('withdrawal')
+    print()
+    print(f'Withdrawl of {amount} added to checkbook.')
+    view_current_balance()
+
+
+# In[11]:
+
+
 def add_credit():
+    print()
     print('Credit (deposit):')
-    amount = get_transaction_details('deposit')   
+    amount = get_transaction_details('deposit')
+    print()
     print(f'Deposit of {amount} added to checkbook.')
     view_current_balance()
 
 
-# In[10]:
+# In[38]:
+
+
+def view_prev_trans():
+    with open('checkbook_balance.csv', 'r') as f:
+        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
+        transactions = [line for line in ckbk_content][1:]
+    print('|   type    |    amount   |     category   |    date    |   time   |                 description              |')
+    print('---------------------------------------------------------------------------------------------------------------')
+    for tran in transactions:
+        tran_type = tran['type']
+        tran_amount = tran['amount']
+        tran_cat = tran['category']
+        tran_date = tran['date']
+        tran_time = tran['time']
+        tran_desc = tran['description'][:40]
+        print(f' {tran_type:<10} | ${tran_amount:>11}| {tran_cat:>14} | {tran_date:>1} | {tran_time:>7} | {tran_desc:>40} |')
+
+
+# In[14]:
+
+
+def view_trans_by_cat():
+    with open('checkbook_balance.csv', 'r') as f:
+        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
+        transactions = [line for line in ckbk_content][1:]
+    # get a sum of transaction amounts per category 
+    #blah
+    # cycle through each tran creating a list per category???
+    # function to get sum per category???
+        
+
+
+# In[15]:
+
+
+def view_trans_by_date():
+    with open('checkbook_balance.csv', 'r') as f:
+        ckbk_content = csv.DictReader(f, fieldnames=tran_cols)
+        transactions = [line for line in ckbk_content][1:]
+    # ask user for date to display
+    # display transactions on given date
+
+
+# In[27]:
 
 
 print('Welcome to your checkbook!')
@@ -211,11 +337,7 @@ while True:
     elif choice == 3:
         add_credit()
     elif choice == 4:
-        print('Goodbye')
-        exit()
-        break
-    # elif choice == 4:
-    #     view_prev_trans()
+        view_prev_trans()
     # elif choice == 5:
     #     view_trans_by_cat()
     # elif choice == 6:
@@ -224,7 +346,7 @@ while True:
     #     search_trans_by_desc()
     # elif choice == 8:
     #     modify_prev_trans()
-    elif choice == 9:
+    elif choice == 5:
         print('Goodbye')
         exit()
         break
